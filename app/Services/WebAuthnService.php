@@ -140,13 +140,16 @@ class WebAuthnService
 
     /**
      * Get existing credentials for a user.
+     * Returns credentials in the format expected by WebAuthn API.
      */
     private function getExistingCredentials(Admin $user): array
     {
         return $user->webAuthnKeys->map(function ($key) {
+            // The credential_id should be base64url encoded
+            // The browser will handle the conversion to ArrayBuffer
             return [
-                'id' => $key->credential_id,
                 'type' => 'public-key',
+                'id' => $key->credential_id, // This is already base64url encoded
                 'transports' => ['internal', 'hybrid'],
             ];
         })->toArray();

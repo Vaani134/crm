@@ -205,6 +205,14 @@ document.addEventListener('DOMContentLoaded', function() {
             options.challenge = base64urlToArrayBuffer(options.challenge);
             options.user.id = base64urlToArrayBuffer(options.user.id);
             
+            // Convert excludeCredentials IDs to ArrayBuffers
+            if (options.excludeCredentials && Array.isArray(options.excludeCredentials)) {
+                options.excludeCredentials = options.excludeCredentials.map(cred => ({
+                    ...cred,
+                    id: base64urlToArrayBuffer(cred.id)
+                }));
+            }
+            
             console.log('Calling navigator.credentials.create...');
             
             // Create credential

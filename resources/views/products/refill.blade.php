@@ -24,34 +24,28 @@
                 <form action="{{ route('products.update.stock') }}" method="POST">
                     @csrf
                     
+                    <!-- Combined Search + Dropdown -->
                     <div class="mb-3">
-                        <label for="product_id" class="form-label">Product *</label>
-                        <select class="form-select @error('product_id') is-invalid @enderror" 
-                                id="product_id" name="product_id" required onchange="updateProductInfo()">
-                            <option value="">Select a product...</option>
-                            @foreach($products as $product)
-                            <option value="{{ $product->id }}" 
-                                    data-name="{{ $product->name }}"
-                                    data-sku="{{ $product->barcode_number }}"
-                                    data-price="{{ $product->price }}"
-                                    data-stock="{{ $product->stock_qty }}"
-                                    data-low-stock="{{ $product->isLowStock() ? 'true' : 'false' }}"
-                                    style="{{ $product->isLowStock() ? 'background-color: #fff3cd; font-weight: bold;' : '' }}"
-                                    {{ old('product_id') == $product->id ? 'selected' : '' }}>
-                                @if($product->stock_qty == 0)
-                                    🔴 {{ $product->name }} ({{ $product->barcode_number }}) - OUT OF STOCK
-                                @elseif($product->isLowStock())
-                                    ⚠️ {{ $product->name }} ({{ $product->barcode_number }}) - LOW: {{ $product->stock_qty }} units
-                                @else
-                                    {{ $product->name }} ({{ $product->barcode_number }}) - Stock: {{ $product->stock_qty }} units
-                                @endif
-                            </option>
-                            @endforeach
-                        </select>
+                        <label for="product_search" class="form-label">
+                            <i class="fas fa-search"></i> Select Product *
+                        </label>
+                        <div class="position-relative">
+                            <input type="text" 
+                                   class="form-control @error('product_id') is-invalid @enderror" 
+                                   id="product_search" 
+                                   placeholder="Search by name, SKU, or barcode...">
+                            <div id="product_dropdown" class="position-absolute w-100 bg-white border rounded mt-1" 
+                                 style="display: none; max-height: 300px; overflow-y: auto; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            </div>
+                        </div>
+                        <small class="text-muted">Type to search or click to see all products</small>
                         @error('product_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
+                    
+                    <!-- Hidden input to store selected product ID -->
+                    <input type="hidden" id="product_id" name="product_id" value="{{ old('product_id') }}" required>
                     
                     <div class="mb-3">
                         <label for="quantity" class="form-label">Quantity to Add *</label>
@@ -145,21 +139,155 @@
 
 @section('scripts')
 <script>
-function updateProductInfo() {
-    const select = document.getElementById('product_id');
-    const selectedOption = select.options[select.selectedIndex];
+// Product data
+const productsData = {!! json_encode($products->map(function($p) {
+    return [
+        'id' => $p->id,
+        'name' => $p->name,
+        'sku' => $p->barcode_number,
+        'price' => $p->price,
+        'stock' => $p->stock_qty,
+        'isLowStock' => $p->isLowStock(),
+        'search' => strtolower($p->name . ' ' . $p->barcode_number)
+    ];
+})->values()) !!};
+
+const searchInput = document.getElementById('product_search');
+const dropdown = document.getElementById('product_dropdown');
+const productIdInput = document.getElementById('product_id');
+let selectedProduct = null;
+
+// Show dropdown on focus
+searchInput.addEventListener('focus', function() {
+    if (this.value === '') {
+        renderDropdown(productsData);
+    }
+});
+
+// Filter and show dropdown on input
+searchInput.addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase().trim();
     
-    if (selectedOption.value) {
-        document.getElementById('info-name').textContent = selectedOption.dataset.name;
-        document.getElementById('info-sku').textContent = selectedOption.dataset.sku;
-        document.getElementById('info-price').textContent = selectedOption.dataset.price;
-        document.getElementById('info-stock').textContent = selectedOption.dataset.stock;
+    if (searchTerm === '') {
+        renderDropdown(productsData);
+    } else {
+        const filtered = productsData.filter(product => 
+            product.search.includes(searchTerm)
+        );
+        renderDropdown(filtered);
+    }
+});
+
+// Render dropdown items
+function renderDropdown(items) {
+    dropdown.innerHTML = '';
+    
+    if (items.length === 0) {
+        dropdown.innerHTML = '<div class="p-3 text-muted text-center">No products found</div>';
+        dropdown.style.display = 'block';
+        return;
+    }
+    
+    items.forEach(product => {
+        const item = document.createElement('div');
+        item.className = 'p-2 border-bottom cursor-pointer hover-item';
+        item.style.cursor = 'pointer';
+        item.style.padding = '10px 12px';
+        item.style.transition = 'background-color 0.2s';
+        
+        // Status indicator
+        let statusIcon = '';
+        let statusText = '';
+        if (product.stock === 0) {
+            statusIcon = '🔴';
+            statusText = 'OUT OF STOCK';
+        } else if (product.isLowStock) {
+            statusIcon = '⚠️';
+            statusText = `LOW: ${product.stock} units`;
+        } else {
+            statusIcon = '✓';
+            statusText = `Stock: ${product.stock} units`;
+        }
+        
+        item.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="fw-bold">${product.name}</div>
+                    <small class="text-muted">SKU: ${product.sku}</small>
+                </div>
+                <div class="text-end">
+                    <div class="small">${statusIcon} ${statusText}</div>
+                    <div class="text-primary fw-bold">$${parseFloat(product.price).toFixed(2)}</div>
+                </div>
+            </div>
+        `;
+        
+        // Hover effect
+        item.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+        });
+        item.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = 'transparent';
+        });
+        
+        // Click to select
+        item.addEventListener('click', function() {
+            selectProduct(product);
+        });
+        
+        dropdown.appendChild(item);
+    });
+    
+    dropdown.style.display = 'block';
+}
+
+// Select product
+function selectProduct(product) {
+    selectedProduct = product;
+    productIdInput.value = product.id;
+    searchInput.value = `${product.name} (${product.sku})`;
+    dropdown.style.display = 'none';
+    updateProductInfo();
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+    if (e.target !== searchInput && e.target !== dropdown) {
+        dropdown.style.display = 'none';
+    }
+});
+
+// Allow keyboard navigation
+searchInput.addEventListener('keydown', function(e) {
+    const items = dropdown.querySelectorAll('.hover-item');
+    
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (items.length > 0) {
+            items[0].focus();
+        }
+    } else if (e.key === 'Escape') {
+        dropdown.style.display = 'none';
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (items.length > 0) {
+            items[0].click();
+        }
+    }
+});
+
+function updateProductInfo() {
+    if (selectedProduct) {
+        document.getElementById('info-name').textContent = selectedProduct.name;
+        document.getElementById('info-sku').textContent = selectedProduct.sku;
+        document.getElementById('info-price').textContent = selectedProduct.price;
+        document.getElementById('info-stock').textContent = selectedProduct.stock;
         
         document.getElementById('product-info').style.display = 'block';
         document.getElementById('no-selection').style.display = 'none';
         
         // Show/hide low stock alert
-        if (selectedOption.dataset.lowStock === 'true') {
+        if (selectedProduct.isLowStock) {
             document.getElementById('low-stock-alert').style.display = 'block';
         } else {
             document.getElementById('low-stock-alert').style.display = 'none';
@@ -169,5 +297,16 @@ function updateProductInfo() {
         document.getElementById('no-selection').style.display = 'block';
     }
 }
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // If there's a pre-selected product (from validation error), show it
+    if (productIdInput.value) {
+        const product = productsData.find(p => p.id == productIdInput.value);
+        if (product) {
+            selectProduct(product);
+        }
+    }
+});
 </script>
 @endsection
