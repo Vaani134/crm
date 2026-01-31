@@ -26,11 +26,10 @@
                 <div id="products-grid" class="row">
                     @foreach($products as $product)
                     <div class="col-md-6 col-lg-4 mb-3 product-item">
-                        <div class="card h-100 product-card" style="cursor: pointer;" 
-                             onclick="addToCart({{ $product->id }}, '{{ $product->name }}', {{ $product->price }}, {{ $product->stock_qty }})">
+                        <div class="card h-100 product-card {{ $product->isLowStock() ? 'border-warning' : '' }}" style="cursor: pointer;">
                             @if($product->image_path)
                             <img src="{{ asset('storage/' . $product->image_path) }}" class="card-img-top" 
-                                 style="height: 120px; object-fit: cover;">
+                                 style="height: 120px; object-fit: cover;" alt="{{ $product->name }}">
                             @else
                             <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
                                  style="height: 120px;">
@@ -40,13 +39,119 @@
                             
                             <div class="card-body p-2">
                                 <h6 class="card-title mb-1">{{ Str::limit($product->name, 25) }}</h6>
+                                
+                                <!-- Product Description (2 lines max) -->
+                                @if($product->description)
+                                <div class="mb-1" style="font-size: 0.8rem; line-height: 1.3;">
+                                    <p class="mb-1 text-muted" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                        {{ $product->description }}
+                                    </p>
+                                    @if(strlen($product->description) > 100)
+                                    <a href="#" class="text-primary" style="font-size: 0.75rem;" data-bs-toggle="modal" data-bs-target="#productModal{{ $product->id }}" onclick="event.stopPropagation();">
+                                        more...
+                                    </a>
+                                    @endif
+                                </div>
+                                @endif
+                                
                                 <p class="card-text small mb-1">
                                     <strong>${{ number_format($product->price, 2) }}</strong><br>
-                                    Stock: {{ $product->stock_qty }}
+                                    Stock: <span class="badge {{ $product->isLowStock() ? 'bg-warning text-dark' : 'bg-success' }}">{{ $product->stock_qty }}</span>
                                 </p>
+                                
+                                @if($product->isLowStock())
+                                <div class="alert alert-warning py-1 px-2 mb-1" style="font-size: 0.75rem;">
+                                    <i class="fas fa-exclamation-triangle"></i> Low Stock!
+                                </div>
+                                @endif
+                                
+                                <button type="button" class="btn btn-sm btn-primary w-100" 
+                                        onclick="addToCart({{ $product->id }}, '{{ addslashes($product->name) }}', {{ $product->price }}, {{ $product->stock_qty }})">
+                                    <i class="fas fa-cart-plus"></i> Add to Cart
+                                </button>
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Product Details Modal -->
+                    @if($product->description)
+                    <div class="modal fade" id="productModal{{ $product->id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">{{ $product->name }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    @if($product->image_path)
+                                    <img src="{{ asset('storage/' . $product->image_path) }}" class="img-fluid mb-3" alt="{{ $product->name }}">
+                                    @endif
+                                    
+                                    <h6>Description</h6>
+                                    <p>{{ $product->description }}</p>
+                                    
+                                    @if($product->brand_name)
+                                    <p><strong>Brand:</strong> {{ $product->brand_name }}</p>
+                                    @endif
+                                    
+                                    <hr>
+                                    
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <p><strong>SKU:</strong> {{ $product->barcode_number }}</p>
+                                            <p><strong>Price:</strong> ${{ number_format($product->price, 2) }}</p>
+                                            <p><strong>Stock:</strong> {{ $product->stock_qty }} units</p>
+                                        </div>
+                                        <div class="col-6">
+                                            @if($product->category)
+                                            <p><strong>Category:</strong> {{ $product->category->name }}</p>
+                                            @endif
+                                            @if($product->manufacturing_date)
+                                            <p><strong>Mfg Date:</strong> {{ $product->manufacturing_date->format('M d, Y') }}</p>
+                                            @endif
+                                            @if($product->expiry_date)
+                                            <p><strong>Expiry:</strong> {{ $product->expiry_date->format('M d, Y') }}</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    
+                                    @if($product->warranty_months || $product->guarantee_months || $product->tax_percentage || $product->discount_percentage)
+                                    <hr>
+                                    <div class="row">
+                                        @if($product->warranty_months)
+                                        <div class="col-6">
+                                            <p><strong>Warranty:</strong> {{ $product->warranty_months }} months</p>
+                                        </div>
+                                        @endif
+                                        @if($product->guarantee_months)
+                                        <div class="col-6">
+                                            <p><strong>Guarantee:</strong> {{ $product->guarantee_months }} months</p>
+                                        </div>
+                                        @endif
+                                        @if($product->tax_percentage)
+                                        <div class="col-6">
+                                            <p><strong>Tax:</strong> {{ $product->tax_percentage }}%</p>
+                                        </div>
+                                        @endif
+                                        @if($product->discount_percentage)
+                                        <div class="col-6">
+                                            <p><strong>Discount:</strong> {{ $product->discount_percentage }}%</p>
+                                        </div>
+                                        @endif
+                                    </div>
+                                    @endif
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal" 
+                                            onclick="addToCart({{ $product->id }}, '{{ addslashes($product->name) }}', {{ $product->price }}, {{ $product->stock_qty }})">
+                                        <i class="fas fa-cart-plus"></i> Add to Cart
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                     @endforeach
                 </div>
             </div>

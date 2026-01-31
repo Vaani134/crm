@@ -102,6 +102,103 @@
                         @enderror
                     </div>
                     
+                    <!-- Product Details Section -->
+                    <hr class="my-4">
+                    <h5 class="mb-3"><i class="fas fa-details"></i> Product Details</h5>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Product Description</label>
+                        <textarea class="form-control @error('description') is-invalid @enderror" 
+                                  id="description" name="description" rows="4" 
+                                  placeholder="Enter complete product details...">{{ old('description') }}</textarea>
+                        <div class="form-text">Include features, specifications, and any other relevant information</div>
+                        @error('description')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="brand_name" class="form-label">Brand Name</label>
+                            <input type="text" class="form-control @error('brand_name') is-invalid @enderror" 
+                                   id="brand_name" name="brand_name" value="{{ old('brand_name') }}" 
+                                   placeholder="e.g., Samsung, Apple, Sony">
+                            @error('brand_name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="manufacturing_date" class="form-label">Manufacturing Date</label>
+                            <input type="date" class="form-control @error('manufacturing_date') is-invalid @enderror" 
+                                   id="manufacturing_date" name="manufacturing_date" value="{{ old('manufacturing_date') }}">
+                            @error('manufacturing_date')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="expiry_date" class="form-label">Expiry Date</label>
+                            <input type="date" class="form-control @error('expiry_date') is-invalid @enderror" 
+                                   id="expiry_date" name="expiry_date" value="{{ old('expiry_date') }}">
+                            <div class="form-text">Leave empty if product doesn't expire</div>
+                            @error('expiry_date')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="warranty_months" class="form-label">Warranty Period (Months)</label>
+                            <input type="number" min="0" class="form-control @error('warranty_months') is-invalid @enderror" 
+                                   id="warranty_months" name="warranty_months" value="{{ old('warranty_months') }}" 
+                                   placeholder="e.g., 12">
+                            @error('warranty_months')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="guarantee_months" class="form-label">Guarantee Period (Months)</label>
+                            <input type="number" min="0" class="form-control @error('guarantee_months') is-invalid @enderror" 
+                                   id="guarantee_months" name="guarantee_months" value="{{ old('guarantee_months') }}" 
+                                   placeholder="e.g., 6">
+                            @error('guarantee_months')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="tax_percentage" class="form-label">Tax (%) Applied</label>
+                            <input type="number" step="0.01" min="0" max="100" 
+                                   class="form-control @error('tax_percentage') is-invalid @enderror" 
+                                   id="tax_percentage" name="tax_percentage" value="{{ old('tax_percentage', 0) }}" 
+                                   placeholder="e.g., 18">
+                            @error('tax_percentage')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="discount_percentage" class="form-label">Discount (%) Applied</label>
+                        <input type="number" step="0.01" min="0" max="100" 
+                               class="form-control @error('discount_percentage') is-invalid @enderror" 
+                               id="discount_percentage" name="discount_percentage" value="{{ old('discount_percentage', 0) }}" 
+                               placeholder="e.g., 10">
+                        @error('discount_percentage')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>Stock-wise Expiry Details:</strong> These can be managed from the product edit page after creation.
+                    </div>
+                    
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save"></i> Add Product
@@ -118,12 +215,35 @@
                 <h5><i class="fas fa-info-circle"></i> Guidelines</h5>
             </div>
             <div class="card-body">
-                <ul class="list-unstyled">
+                <h6>Basic Information</h6>
+                <ul class="list-unstyled small">
                     <li><i class="fas fa-check text-success"></i> Product name: 3-120 characters</li>
                     <li><i class="fas fa-check text-success"></i> SKU must be unique</li>
                     <li><i class="fas fa-check text-success"></i> Price must be ≥ 0</li>
                     <li><i class="fas fa-check text-success"></i> Stock quantity must be ≥ 0</li>
-                    <li><i class="fas fa-check text-success"></i> Image is optional</li>
+                </ul>
+                
+                <hr>
+                
+                <h6>Product Details</h6>
+                <ul class="list-unstyled small">
+                    <li><i class="fas fa-check text-success"></i> Description: Complete product info</li>
+                    <li><i class="fas fa-check text-success"></i> Brand: Manufacturer name</li>
+                    <li><i class="fas fa-check text-success"></i> Dates: Manufacturing & Expiry</li>
+                    <li><i class="fas fa-check text-success"></i> Warranty: In months</li>
+                    <li><i class="fas fa-check text-success"></i> Guarantee: In months</li>
+                    <li><i class="fas fa-check text-success"></i> Tax: Percentage (0-100)</li>
+                    <li><i class="fas fa-check text-success"></i> Discount: Percentage (0-100)</li>
+                </ul>
+                
+                <hr>
+                
+                <h6>Tips</h6>
+                <ul class="list-unstyled small">
+                    <li><i class="fas fa-lightbulb text-warning"></i> Image is optional</li>
+                    <li><i class="fas fa-lightbulb text-warning"></i> Expiry date is optional</li>
+                    <li><i class="fas fa-lightbulb text-warning"></i> All dates are optional</li>
+                    <li><i class="fas fa-lightbulb text-warning"></i> Tax & discount default to 0%</li>
                 </ul>
             </div>
         </div>

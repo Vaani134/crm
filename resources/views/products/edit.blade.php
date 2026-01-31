@@ -113,6 +113,113 @@
                         @enderror
                     </div>
                     
+                    <!-- Product Details Section -->
+                    <hr class="my-4">
+                    <h5 class="mb-3"><i class="fas fa-details"></i> Product Details</h5>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Product Description</label>
+                        <textarea class="form-control @error('description') is-invalid @enderror" 
+                                  id="description" name="description" rows="4" 
+                                  placeholder="Enter complete product details...">{{ old('description', $product->description) }}</textarea>
+                        <div class="form-text">Include features, specifications, and any other relevant information</div>
+                        @error('description')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="brand_name" class="form-label">Brand Name</label>
+                            <input type="text" class="form-control @error('brand_name') is-invalid @enderror" 
+                                   id="brand_name" name="brand_name" value="{{ old('brand_name', $product->brand_name) }}" 
+                                   placeholder="e.g., Samsung, Apple, Sony">
+                            @error('brand_name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="manufacturing_date" class="form-label">Manufacturing Date</label>
+                            <input type="date" class="form-control @error('manufacturing_date') is-invalid @enderror" 
+                                   id="manufacturing_date" name="manufacturing_date" 
+                                   value="{{ old('manufacturing_date', $product->manufacturing_date?->format('Y-m-d')) }}">
+                            @error('manufacturing_date')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="expiry_date" class="form-label">Expiry Date</label>
+                            <input type="date" class="form-control @error('expiry_date') is-invalid @enderror" 
+                                   id="expiry_date" name="expiry_date" 
+                                   value="{{ old('expiry_date', $product->expiry_date?->format('Y-m-d')) }}">
+                            <div class="form-text">Leave empty if product doesn't expire</div>
+                            @if($product->isExpired())
+                            <div class="alert alert-danger py-1 px-2 mt-1">
+                                <i class="fas fa-exclamation-circle"></i> Product has expired!
+                            </div>
+                            @elseif($product->isExpiringSoon())
+                            <div class="alert alert-warning py-1 px-2 mt-1">
+                                <i class="fas fa-exclamation-triangle"></i> Expiring soon!
+                            </div>
+                            @endif
+                            @error('expiry_date')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="warranty_months" class="form-label">Warranty Period (Months)</label>
+                            <input type="number" min="0" class="form-control @error('warranty_months') is-invalid @enderror" 
+                                   id="warranty_months" name="warranty_months" 
+                                   value="{{ old('warranty_months', $product->warranty_months) }}" 
+                                   placeholder="e.g., 12">
+                            @error('warranty_months')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="guarantee_months" class="form-label">Guarantee Period (Months)</label>
+                            <input type="number" min="0" class="form-control @error('guarantee_months') is-invalid @enderror" 
+                                   id="guarantee_months" name="guarantee_months" 
+                                   value="{{ old('guarantee_months', $product->guarantee_months) }}" 
+                                   placeholder="e.g., 6">
+                            @error('guarantee_months')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="tax_percentage" class="form-label">Tax (%) Applied</label>
+                            <input type="number" step="0.01" min="0" max="100" 
+                                   class="form-control @error('tax_percentage') is-invalid @enderror" 
+                                   id="tax_percentage" name="tax_percentage" 
+                                   value="{{ old('tax_percentage', $product->tax_percentage ?? 0) }}" 
+                                   placeholder="e.g., 18">
+                            @error('tax_percentage')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="discount_percentage" class="form-label">Discount (%) Applied</label>
+                        <input type="number" step="0.01" min="0" max="100" 
+                               class="form-control @error('discount_percentage') is-invalid @enderror" 
+                               id="discount_percentage" name="discount_percentage" 
+                               value="{{ old('discount_percentage', $product->discount_percentage ?? 0) }}" 
+                               placeholder="e.g., 10">
+                        @error('discount_percentage')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save"></i> Update Product
